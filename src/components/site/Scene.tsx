@@ -25,6 +25,8 @@ function Sculpture({ scroll, mouse, isMobile }: { scroll: { v: number }; mouse: 
           ior={1.4}
           thickness={0.6}
           roughness={0.1}
+          transparent={true}
+          opacity={1}
           color="#e8f9ff"
         />
       </mesh>
