@@ -1,5 +1,5 @@
 import { Canvas, useFrame } from "@react-three/fiber";
-import { Environment, Float, MeshTransmissionMaterial, Points, PointMaterial } from "@react-three/drei";
+import { Environment, Float, Points, PointMaterial } from "@react-three/drei";
 import { useMemo, useRef, useEffect, useState } from "react";
 import * as THREE from "three";
 
@@ -16,34 +16,17 @@ function Sculpture({ scroll, mouse, isMobile }: { scroll: { v: number }; mouse: 
     ref.current.position.x += (mouse.x * 0.4 - ref.current.position.x) * 0.05;
     ref.current.position.y += (-mouse.y * 0.3 - ref.current.position.y) * 0.05;
   });
-  const geo = useMemo(() => new THREE.TorusKnotGeometry(1, 0.32, isMobile ? 80 : 150, isMobile ? 16 : 24, 2, 3), [isMobile]);
+  const geo = useMemo(() => new THREE.TorusKnotGeometry(1, 0.32, isMobile ? 64 : 128, isMobile ? 12 : 16, 2, 3), [isMobile]);
   return (
     <Float speed={1.2} rotationIntensity={0.3} floatIntensity={0.6}>
       <mesh ref={ref} geometry={geo}>
-        {isMobile ? (
-          <meshPhysicalMaterial
-            transmission={1}
-            ior={1.4}
-            thickness={0.6}
-            roughness={0.1}
-            color="#e8f9ff"
-          />
-        ) : (
-          <MeshTransmissionMaterial
-            thickness={0.6}
-            roughness={0.05}
-            transmission={1}
-            ior={1.4}
-            chromaticAberration={0.05}
-            backside
-            samples={3}
-            resolution={256}
-            distortion={0.2}
-            distortionScale={0.4}
-            temporalDistortion={0.1}
-            color="#e8f9ff"
-          />
-        )}
+        <meshPhysicalMaterial
+          transmission={1}
+          ior={1.4}
+          thickness={0.6}
+          roughness={0.1}
+          color="#e8f9ff"
+        />
       </mesh>
     </Float>
   );
@@ -151,7 +134,7 @@ export function Scene() {
   return (
     <Canvas
       className="pointer-events-none"
-      dpr={isMobile ? [1, 1] : [1, 1.25]}
+      dpr={1}
       gl={{ antialias: !isMobile, alpha: true, powerPreference: "high-performance" }}
       camera={{ position: [0, 0, 4], fov: 40 }}
     >
@@ -162,7 +145,7 @@ export function Scene() {
       <Wireframe scroll={scroll.current} />
       <Sculpture scroll={scroll.current} mouse={mouse.current} isMobile={isMobile} />
       <CameraRig scroll={scroll.current} mouse={mouse.current} />
-      <Environment preset="city" />
+      <Environment preset="city" resolution={256} />
     </Canvas>
   );
 }
