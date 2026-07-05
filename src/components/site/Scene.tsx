@@ -1,5 +1,5 @@
 import { Canvas, useFrame } from "@react-three/fiber";
-import { Environment, Float, Points, PointMaterial } from "@react-three/drei";
+import { Environment, Float, Points, PointMaterial, MeshTransmissionMaterial } from "@react-three/drei";
 import { useMemo, useRef, useEffect, useState } from "react";
 import * as THREE from "three";
 
@@ -20,13 +20,18 @@ function Sculpture({ scroll, mouse, isMobile }: { scroll: { v: number }; mouse: 
   return (
     <Float speed={1.2} rotationIntensity={0.3} floatIntensity={0.6}>
       <mesh ref={ref} geometry={geo}>
-        <meshPhysicalMaterial
+        <MeshTransmissionMaterial
+          thickness={0.6}
+          roughness={0.05}
           transmission={1}
           ior={1.4}
-          thickness={0.6}
-          roughness={0.1}
-          transparent={true}
-          opacity={1}
+          chromaticAberration={0.05}
+          backside={!isMobile}
+          samples={3}
+          resolution={isMobile ? 128 : 256}
+          distortion={0.2}
+          distortionScale={0.4}
+          temporalDistortion={0.1}
           color="#e8f9ff"
         />
       </mesh>
