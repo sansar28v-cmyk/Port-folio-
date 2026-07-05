@@ -3,7 +3,7 @@ import { Environment, Float, MeshTransmissionMaterial, Points, PointMaterial } f
 import { useMemo, useRef, useEffect, useState } from "react";
 import * as THREE from "three";
 
-function Sculpture({ scroll, mouse }: { scroll: { v: number }; mouse: { x: number; y: number } }) {
+function Sculpture({ scroll, mouse, isMobile }: { scroll: { v: number }; mouse: { x: number; y: number }; isMobile: boolean }) {
   const ref = useRef<THREE.Mesh>(null);
   useFrame((state, dt) => {
     if (!ref.current) return;
@@ -16,24 +16,34 @@ function Sculpture({ scroll, mouse }: { scroll: { v: number }; mouse: { x: numbe
     ref.current.position.x += (mouse.x * 0.4 - ref.current.position.x) * 0.05;
     ref.current.position.y += (-mouse.y * 0.3 - ref.current.position.y) * 0.05;
   });
-  const geo = useMemo(() => new THREE.TorusKnotGeometry(1, 0.32, 220, 32, 2, 3), []);
+  const geo = useMemo(() => new THREE.TorusKnotGeometry(1, 0.32, isMobile ? 80 : 150, isMobile ? 16 : 24, 2, 3), [isMobile]);
   return (
     <Float speed={1.2} rotationIntensity={0.3} floatIntensity={0.6}>
       <mesh ref={ref} geometry={geo}>
-        <MeshTransmissionMaterial
-          thickness={0.6}
-          roughness={0.05}
-          transmission={1}
-          ior={1.4}
-          chromaticAberration={0.05}
-          backside
-          samples={6}
-          resolution={512}
-          distortion={0.2}
-          distortionScale={0.4}
-          temporalDistortion={0.1}
-          color="#e8f9ff"
-        />
+        {isMobile ? (
+          <meshPhysicalMaterial
+            transmission={1}
+            ior={1.4}
+            thickness={0.6}
+            roughness={0.1}
+            color="#e8f9ff"
+          />
+        ) : (
+          <MeshTransmissionMaterial
+            thickness={0.6}
+            roughness={0.05}
+            transmission={1}
+            ior={1.4}
+            chromaticAberration={0.05}
+            backside
+            samples={3}
+            resolution={256}
+            distortion={0.2}
+            distortionScale={0.4}
+            temporalDistortion={0.1}
+            color="#e8f9ff"
+          />
+        )}
       </mesh>
     </Float>
   );
@@ -59,11 +69,12 @@ function Wireframe({ scroll }: { scroll: { v: number } }) {
   );
 }
 
-function Starfield({ scroll }: { scroll: { v: number } }) {
+function Starfield({ scroll, isMobile }: { scroll: { v: number }; isMobile: boolean }) {
   const ref = useRef<THREE.Points>(null);
   const positions = useMemo(() => {
-    const arr = new Float32Array(1200 * 3);
-    for (let i = 0; i < 1200; i++) {
+    const count = isMobile ? 400 : 800;
+    const arr = new Float32Array(count * 3);
+    for (let i = 0; i < count; i++) {
       const r = 6 + Math.random() * 8;
       const theta = Math.random() * Math.PI * 2;
       const phi = Math.acos(2 * Math.random() - 1);
@@ -72,7 +83,7 @@ function Starfield({ scroll }: { scroll: { v: number } }) {
       arr[i * 3 + 2] = r * Math.cos(phi);
     }
     return arr;
-  }, []);
+  }, [isMobile]);
   useFrame((_, dt) => {
     if (!ref.current) return;
     ref.current.rotation.y += dt * 0.02;
@@ -140,16 +151,16 @@ export function Scene() {
   return (
     <Canvas
       className="pointer-events-none"
-      dpr={isMobile ? [1, 1] : [1, 1.5]}
+      dpr={isMobile ? [1, 1] : [1, 1.25]}
       gl={{ antialias: !isMobile, alpha: true, powerPreference: "high-performance" }}
       camera={{ position: [0, 0, 4], fov: 40 }}
     >
       <ambientLight intensity={0.4} />
       <directionalLight position={[3, 5, 2]} intensity={1.2} />
       <directionalLight position={[-3, -2, -2]} intensity={0.4} color="#00f0ff" />
-      <Starfield scroll={scroll.current} />
+      <Starfield scroll={scroll.current} isMobile={isMobile} />
       <Wireframe scroll={scroll.current} />
-      <Sculpture scroll={scroll.current} mouse={mouse.current} />
+      <Sculpture scroll={scroll.current} mouse={mouse.current} isMobile={isMobile} />
       <CameraRig scroll={scroll.current} mouse={mouse.current} />
       <Environment preset="city" />
     </Canvas>
