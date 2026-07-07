@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import {
   motion,
   useScroll,
+  useVelocity,
   useSpring,
   useTransform,
   useMotionValueEvent,
@@ -9,7 +10,7 @@ import {
 } from "framer-motion";
 
 const links = [
-  { id: "work", label: "Work", n: "01", meta: "Selected projects" },
+  { id: "showcase", label: "Work", n: "01", meta: "Selected projects" },
   { id: "about", label: "About", n: "02", meta: "The practice" },
   { id: "capabilities", label: "Capabilities", n: "03", meta: "Stack & craft" },
   { id: "contact", label: "Contact", n: "04", meta: "Start a project" },
@@ -33,6 +34,10 @@ export function Header() {
   const lastY = useRef(0);
 
   const { scrollYProgress, scrollY } = useScroll();
+  const velocity = useVelocity(scrollY);
+  const smoothVelocity = useSpring(velocity, { damping: 50, stiffness: 400 });
+  const rotateX = useTransform(smoothVelocity, [-1000, 1000], [15, -15]);
+
   const progress = useSpring(scrollYProgress, { stiffness: 120, damping: 30, mass: 0.4 });
   const progressPct = useTransform(progress, (v) => `${Math.round(v * 100)}`);
   const [pct, setPct] = useState("0");
@@ -48,7 +53,7 @@ export function Header() {
   });
 
   useEffect(() => {
-    const ids = ["about", "work", "capabilities", "services", "contact"];
+    const ids = ["about", "showcase", "capabilities", "services", "contact"];
     const obs = new IntersectionObserver(
       (entries) => {
         entries.forEach((e) => {
@@ -88,18 +93,18 @@ export function Header() {
         className="fixed left-0 right-0 top-0 z-[60] h-px origin-left bg-gradient-to-r from-transparent via-accent to-accent/40"
       />
 
-      <motion.header
-        initial={false}
-        animate={{
-          y: hidden ? -120 : 0,
-          backgroundColor: scrolled ? "rgba(10,10,12,0.78)" : "rgba(10,10,12,0)",
-          borderColor: scrolled ? "rgba(255,255,255,0.08)" : "rgba(255,255,255,0)",
-          backdropFilter: scrolled ? "blur(24px) saturate(160%)" : "blur(0px)",
-        }}
-        transition={{ duration: 0.45, ease: [0.7, 0, 0.2, 1] }}
-        className="fixed inset-x-0 top-0 z-50 border-b"
-        style={{ WebkitBackdropFilter: scrolled ? "blur(24px) saturate(160%)" : undefined }}
-      >
+      <motion.div style={{ perspective: "1000px" }} className="fixed inset-x-0 top-0 z-50">
+        <motion.header
+          initial={false}
+          style={{ rotateX, transformOrigin: "top" }}
+          animate={{
+            y: hidden ? -120 : 0,
+            backgroundColor: scrolled ? "rgba(10,10,12,0.85)" : "rgba(10,10,12,0)",
+            borderColor: scrolled ? "rgba(255,255,255,0.08)" : "rgba(255,255,255,0)",
+          }}
+          transition={{ duration: 0.45, ease: [0.7, 0, 0.2, 1] }}
+          className={`relative border-b ${scrolled ? 'bg-background/95 md:bg-transparent md:backdrop-blur-[24px] saturate-150' : ''}`}
+        >
         {/* subtle top glow when scrolled */}
         <motion.div
           aria-hidden
@@ -209,7 +214,7 @@ export function Header() {
 
             {/* time + location */}
             <div className="hidden lg:flex h-9 items-center gap-2 rounded-full border border-hairline px-3 mono-label !text-[0.62rem] leading-none text-foreground/60 whitespace-nowrap">
-              <span className="tabular-nums text-foreground/85">{time || "--:--:--"}</span>
+              <span className="tabular-nums text-foreground/85" suppressHydrationWarning>{time || "--:--:--"}</span>
               <span className="h-3 w-px bg-foreground/15" />
               <span>MAA · IN</span>
             </div>
@@ -314,14 +319,15 @@ export function Header() {
                   </motion.a>
                 ))}
                 <div className="mt-4 flex items-center justify-between mono-label opacity-60">
-                  <span className="tabular-nums">{time || "--:--:--"} · MAA</span>
+                  <span className="tabular-nums" suppressHydrationWarning>{time || "--:--:--"} · MAA</span>
                   <span className="text-accent">● Available</span>
                 </div>
               </div>
             </motion.div>
           )}
         </AnimatePresence>
-      </motion.header>
+        </motion.header>
+      </motion.div>
     </>
   );
 }

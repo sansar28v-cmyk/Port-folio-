@@ -113,10 +113,11 @@ function CaseBlock({ c, i }: { c: Case; i: number }) {
           }}
           onMouseEnter={() => setHover(true)}
           onMouseLeave={() => setHover(false)}
-          initial={{ opacity: 0, y: 40 }}
-          whileInView={{ opacity: 1, y: 0 }}
+          initial={{ opacity: 0, y: 40, rotateX: -30, scale: 0.95 }}
+          whileInView={{ opacity: 1, y: 0, rotateX: 0, scale: 1 }}
           viewport={{ once: true, margin: "-10%" }}
-          transition={{ duration: 0.9, ease, delay: i * 0.08 }}
+          transition={{ duration: 0.9, ease: [0.16, 1, 0.3, 1] }}
+          style={{ transformOrigin: "top" }}
           className="group relative border border-hairline overflow-hidden"
         >
           {/* cursor spotlight */}
@@ -129,7 +130,7 @@ function CaseBlock({ c, i }: { c: Case; i: number }) {
                   `radial-gradient(300px circle at ${x} ${y}, color-mix(in oklab, var(--accent) 12%, transparent), transparent 60%)`,
               ) as unknown as string,
             }}
-            className="pointer-events-none absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 z-10"
+            className="hidden md:block pointer-events-none absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 z-10"
           />
 
           {/* Corner ticks */}
@@ -170,7 +171,7 @@ function CaseBlock({ c, i }: { c: Case; i: number }) {
 
           {/* Hero visual */}
           <div
-            className="relative aspect-[4/5] md:aspect-[4/3] lg:aspect-[16/9] w-full overflow-hidden"
+            className="relative aspect-[1/1] md:aspect-[4/3] lg:aspect-[16/9] w-full overflow-hidden"
             style={{ background: c.accent }}
           >
             {c.image && (
@@ -220,28 +221,28 @@ function CaseBlock({ c, i }: { c: Case; i: number }) {
           </div>
 
           {/* Mobile tagline footer */}
-          <div className="md:hidden border-t border-hairline p-4">
-            <p className="text-sm text-muted-foreground leading-relaxed">
+          <div className="md:hidden border-t border-hairline p-5 bg-gradient-to-b from-transparent to-black/10">
+            <p className="text-[15px] font-light text-foreground/90 leading-relaxed">
               {c.tagline}
             </p>
           </div>
 
           {/* Detail grid */}
-          <div className="grid grid-cols-1 md:grid-cols-3 border-t border-hairline">
-            <div className="p-5 md:p-6 border-b md:border-b-0 md:border-r border-hairline">
-              <p className="mono-label opacity-50">Problem</p>
+          <div className="grid grid-cols-1 md:grid-cols-3 border-t border-hairline bg-black/20 md:backdrop-blur-sm">
+            <div className="p-6 md:p-6 border-b md:border-b-0 md:border-r border-hairline/50 hover:bg-white/[0.02] transition-colors">
+              <p className="mono-label opacity-50 text-accent">Problem</p>
               <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
                 {c.problem}
               </p>
             </div>
-            <div className="p-5 md:p-6 border-b md:border-b-0 md:border-r border-hairline">
-              <p className="mono-label opacity-50">Approach</p>
+            <div className="p-6 md:p-6 border-b md:border-b-0 md:border-r border-hairline/50 hover:bg-white/[0.02] transition-colors">
+              <p className="mono-label opacity-50 text-accent">Approach</p>
               <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
                 {c.approach}
               </p>
             </div>
-            <div className="p-5 md:p-6">
-              <p className="mono-label opacity-50">Result</p>
+            <div className="p-6 md:p-6 hover:bg-white/[0.02] transition-colors">
+              <p className="mono-label opacity-50 text-accent">Result</p>
               <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
                 {c.result}
               </p>
@@ -292,21 +293,24 @@ export function Work() {
         }}
       />
 
-      <div className="container-editorial pt-24 md:pt-32 pb-24">
+      <div className="container-editorial py-12 md:py-20">
         {/* Header */}
         <div className="grid grid-cols-12 gap-6 items-end">
           <div className="col-span-12 md:col-span-4">
             <p className="mono-label">02 / Selected work</p>
-            <motion.h2
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: "-10%" }}
-              transition={{ duration: 0.9, ease }}
-              className="mt-6 display-xl text-[clamp(2.2rem,5vw,4rem)] leading-[0.95] tracking-tight"
-            >
-              Projects that<br />
-              <span className="italic font-light text-accent">shipped.</span>
-            </motion.h2>
+            <div style={{ perspective: "1000px" }}>
+              <motion.h2
+                initial={{ opacity: 0, y: 40, rotateX: -45, scale: 0.95 }}
+                whileInView={{ opacity: 1, y: 0, rotateX: 0, scale: 1 }}
+                viewport={{ once: true, margin: "-10%" }}
+                transition={{ duration: 0.9, ease: [0.16, 1, 0.3, 1] }}
+                style={{ transformOrigin: "bottom" }}
+                className="mt-6 display-xl text-[clamp(2.2rem,5vw,4rem)] leading-[0.95] tracking-tight"
+              >
+                Projects that<br />
+                <span className="italic font-light text-accent">shipped.</span>
+              </motion.h2>
+            </div>
           </div>
 
           <div className="col-span-12 md:col-span-8 md:pl-10">
@@ -340,7 +344,7 @@ export function Work() {
         </div>
 
         {/* Cases */}
-        <div className="mt-20 md:mt-24 space-y-24 md:space-y-32">
+        <div className="mt-12 md:mt-16 space-y-16 md:space-y-24" style={{ perspective: "1500px" }}>
           {cases.map((c, i) => (
             <CaseBlock key={c.idx} c={c} i={i} />
           ))}

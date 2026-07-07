@@ -1,5 +1,6 @@
-import { useState, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { useState, useEffect, useRef } from "react";
+import { motion, AnimatePresence, useMotionValue, useSpring, useTransform } from "framer-motion";
+import { useIsMobile } from "@/hooks/use-mobile";
 import trendzImg from "@/assets/trendz.png";
 import ridecheckImg from "@/assets/ridecheck.png";
 import auraImg from "@/assets/aura.png";
@@ -95,30 +96,103 @@ const projects: Project[] = [
   },
 ];
 
-// Floating tech icons — slug maps to simple-icons CDN
-const stack = [
-  { name: "Python",        slug: "python",         color: "3776AB", x: 10, y: 20, size: 68, delay: 0.0 },
-  { name: "React",         slug: "react",          color: "61DAFB", x: 80, y: 22, size: 84, delay: 0.4 },
-  { name: "TypeScript",    slug: "typescript",     color: "3178C6", x: 22, y: 62, size: 72, delay: 0.8 },
-  { name: "JavaScript",    slug: "javascript",     color: "F7DF1E", x: 64, y: 72, size: 70, delay: 1.2 },
-  { name: "Node.js",       slug: "nodedotjs",      color: "5FA04E", x: 46, y: 10, size: 66, delay: 0.6 },
-  { name: "Tailwind CSS",  slug: "tailwindcss",    color: "06B6D4", x: 90, y: 58, size: 74, delay: 0.2 },
-  { name: "HTML5",         slug: "html5",          color: "E34F26", x: 52, y: 84, size: 64, delay: 1.5 },
-  { name: "CSS3",          slug: "css",            color: "1572B6", x: 36, y: 90, size: 60, delay: 0.9 },
-  { name: "Flask",         slug: "flask",          color: "FFFFFF", x: 6,  y: 42, size: 60, delay: 1.1 },
-  { name: "OpenCV",        slug: "opencv",         color: "5C3EE8", x: 70, y: 44, size: 70, delay: 0.3 },
-  { name: "Git",           slug: "git",            color: "F05032", x: 30, y: 34, size: 62, delay: 1.4 },
-  { name: "Vite",          slug: "vite",           color: "646CFF", x: 94, y: 34, size: 58, delay: 0.7 },
-  { name: "Vercel",        slug: "vercel",         color: "FFFFFF", x: 58, y: 50, size: 54, delay: 1.0 },
-  { name: "Netlify",       slug: "netlify",        color: "00C7B7", x: 76, y: 88, size: 62, delay: 0.5 },
-  { name: "Google Maps",   slug: "googlemaps",     color: "4285F4", x: 16, y: 82, size: 58, delay: 0.5 },
-  { name: "Ollama",        slug: "ollama",         color: "FFFFFF", x: 86, y: 80, size: 64, delay: 1.3 },
-  { name: "OpenRouter",    slug: "openrouter",     color: "5E5CE6", x: 42, y: 36, size: 60, delay: 0.1 },
+// Organized tech stack for professional bento grid
+const stackCategories = [
+  {
+    title: "AI & Machine Learning",
+    items: [
+      { name: "Python", slug: "python", color: "3776AB" },
+      { name: "Flask", slug: "flask", color: "FFFFFF" },
+      { name: "OpenCV", slug: "opencv", color: "5C3EE8" },
+      { name: "Ollama", slug: "ollama", color: "FFFFFF" },
+      { name: "OpenRouter", slug: "openrouter", color: "5E5CE6" },
+    ]
+  },
+  {
+    title: "Frontend Engineering",
+    items: [
+      { name: "React", slug: "react", color: "61DAFB" },
+      { name: "TypeScript", slug: "typescript", color: "3178C6" },
+      { name: "JavaScript", slug: "javascript", color: "F7DF1E" },
+      { name: "Tailwind CSS", slug: "tailwindcss", color: "06B6D4" },
+      { name: "HTML5", slug: "html5", color: "E34F26" },
+      { name: "CSS3", slug: "css", color: "1572B6" },
+    ]
+  },
+  {
+    title: "Backend & Infrastructure",
+    items: [
+      { name: "Node.js", slug: "nodedotjs", color: "5FA04E" },
+      { name: "Vite", slug: "vite", color: "646CFF" },
+      { name: "Git", slug: "git", color: "F05032" },
+      { name: "Vercel", slug: "vercel", color: "FFFFFF" },
+      { name: "Netlify", slug: "netlify", color: "00C7B7" },
+      { name: "Google Maps", slug: "googlemaps", color: "4285F4" },
+    ]
+  }
 ];
 
+function TiltCard({ children, className, onClick, style, ...props }: any) {
+  const ref = useRef<HTMLButtonElement>(null);
+  const x = useMotionValue(0);
+  const y = useMotionValue(0);
 
+  const mouseXSpring = useSpring(x, { stiffness: 400, damping: 40 });
+  const mouseYSpring = useSpring(y, { stiffness: 400, damping: 40 });
+
+  const rotateX = useTransform(mouseYSpring, [-0.5, 0.5], ["5deg", "-5deg"]);
+  const rotateY = useTransform(mouseXSpring, [-0.5, 0.5], ["-5deg", "5deg"]);
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (!ref.current || window.innerWidth < 768) return;
+    const rect = ref.current.getBoundingClientRect();
+    const width = rect.width;
+    const height = rect.height;
+    const mouseX = e.clientX - rect.left;
+    const mouseY = e.clientY - rect.top;
+    const xPct = mouseX / width - 0.5;
+    const yPct = mouseY / height - 0.5;
+    x.set(xPct);
+    y.set(yPct);
+  };
+
+  const handleMouseLeave = () => {
+    x.set(0);
+    y.set(0);
+  };
+
+  return (
+    <motion.button
+      ref={ref}
+      type="button"
+      onClick={onClick}
+      onMouseMove={handleMouseMove}
+      onMouseLeave={handleMouseLeave}
+      style={{ rotateX, rotateY, transformStyle: "preserve-3d", ...style }}
+      className={className}
+      {...props}
+    >
+      {/* Glare effect */}
+      <motion.div
+        className="pointer-events-none absolute inset-0 z-50 rounded-[2rem] opacity-0 transition-opacity group-hover:opacity-100"
+        style={{
+          background: useTransform(
+            [mouseXSpring, mouseYSpring],
+            ([mx, my]) => {
+              const px = (mx + 0.5) * 100;
+              const py = (my + 0.5) * 100;
+              return `radial-gradient(circle at ${px}% ${py}%, rgba(255,255,255,0.08) 0%, transparent 50%)`;
+            }
+          ) as any,
+        }}
+      />
+      {children}
+    </motion.button>
+  );
+}
 
 export function Showcase() {
+  const isMobile = useIsMobile();
   const [tab, setTab] = useState<Tab>("projects");
   const [active, setActive] = useState<Project | null>(null);
   const [activeCert, setActiveCert] = useState<Certificate | null>(null);
@@ -140,8 +214,8 @@ export function Showcase() {
   }, [active, activeCert]);
 
   return (
-    <section id="showcase" className="relative z-10">
-      <div className="container-editorial pt-24 pb-16">
+    <section id="showcase" className={`relative ${active || activeCert ? 'z-[100]' : 'z-10'}`}>
+      <div className="container-editorial py-12 md:py-20">
         <div className="flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
           <div>
             <p className="mono-label">02 / Showcase</p>
@@ -153,35 +227,37 @@ export function Showcase() {
             </p>
           </div>
 
-          <div className="inline-flex rounded-full border border-hairline p-1 self-start md:self-auto">
-            {(
-              [
-                { id: "projects", label: "Projects" },
-                { id: "certificates", label: "Certificates" },
-                { id: "stack", label: "Tech Stack" },
-              ] as { id: Tab; label: string }[]
-            ).map((t) => (
-              <button
-                key={t.id}
-                onClick={() => setTab(t.id)}
-                className={`relative rounded-full px-4 md:px-5 py-2 mono-label transition-colors ${
-                  tab === t.id ? "text-background" : "text-foreground/70 hover:text-foreground"
-                }`}
-              >
-                {tab === t.id && (
-                  <motion.span
-                    layoutId="showcase-pill"
-                    className="absolute inset-0 rounded-full bg-foreground"
-                    transition={{ type: "spring", stiffness: 400, damping: 34 }}
-                  />
-                )}
-                <span className="relative">{t.label}</span>
-              </button>
-            ))}
+          <div className="w-full md:w-auto -mx-4 px-4 md:mx-0 md:px-0 overflow-x-auto" style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}>
+            <div className="inline-flex rounded-full border border-hairline p-1 self-start md:self-auto whitespace-nowrap min-w-max md:min-w-0">
+              {(
+                [
+                  { id: "projects", label: "Projects" },
+                  { id: "certificates", label: "Certificates" },
+                  { id: "stack", label: "Tech Stack" },
+                ] as { id: Tab; label: string }[]
+              ).map((t) => (
+                <button
+                  key={t.id}
+                  onClick={() => setTab(t.id)}
+                  className={`relative rounded-full px-4 md:px-5 py-2 mono-label transition-colors ${
+                    tab === t.id ? "text-background" : "text-foreground/70 hover:text-foreground"
+                  }`}
+                >
+                  {tab === t.id && (
+                    <motion.span
+                      layoutId="showcase-pill"
+                      className="absolute inset-0 rounded-full bg-foreground"
+                      transition={{ type: "spring", stiffness: 400, damping: 34 }}
+                    />
+                  )}
+                  <span className="relative">{t.label}</span>
+                </button>
+              ))}
+            </div>
           </div>
         </div>
 
-        <div className="mt-14">
+        <div className="mt-14" style={{ perspective: "1200px" }}>
           <AnimatePresence mode="wait">
             {tab === "projects" ? (
               <motion.div
@@ -193,30 +269,30 @@ export function Showcase() {
                 className="grid grid-cols-1 gap-6 md:grid-cols-3"
               >
                 {projects.map((p, i) => (
-                  <motion.button
+                  <TiltCard
                     key={p.title}
-                    type="button"
                     onClick={() => setActive(p)}
-                    initial={{ opacity: 0, y: 24 }}
-                    whileInView={{ opacity: 1, y: 0 }}
+                    initial={{ opacity: 0, y: 24, rotateX: -30, scale: 0.95 }}
+                    whileInView={{ opacity: 1, y: 0, rotateX: 0, scale: 1 }}
                     viewport={{ once: true, margin: "-10%" }}
-                    transition={{ duration: 0.6, ease, delay: i * 0.08 }}
-                    className="group relative block overflow-hidden border border-hairline bg-background text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+                    transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1], delay: i * 0.08 }}
+                    style={{ transformOrigin: "bottom" }}
+                    className="group relative block overflow-hidden rounded-[2rem] border border-white/10 bg-white/[0.02] p-2 text-left md:backdrop-blur-md transition-all duration-500 hover:-translate-y-2 hover:bg-white/[0.05] hover:shadow-[0_20px_40px_-15px_rgba(0,240,255,0.15)] focus:outline-none focus-visible:ring-2 focus-visible:ring-accent"
                   >
                     {/* Visual area */}
-                    <div className="relative aspect-[4/3] w-full overflow-hidden bg-black/10">
+                    <div className="relative aspect-[16/10] w-full overflow-hidden rounded-[1.5rem] bg-black">
                       <img
                         src={p.image}
                         alt={p.title}
                         loading="lazy"
                         className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
                       />
-                      <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-transparent" />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
 
                       {/* Top metadata */}
                       <div className="absolute top-4 left-4 right-4 flex items-center justify-between">
-                        <span className="mono-label opacity-50">{p.idx}</span>
-                        <span className="mono-label opacity-40 text-[10px] uppercase tracking-[0.2em]">
+                        <span className="mono-label opacity-70 bg-black/50 backdrop-blur-md px-3 py-1 rounded-full">{p.idx}</span>
+                        <span className="mono-label opacity-70 text-[10px] uppercase tracking-[0.2em] bg-black/50 backdrop-blur-md px-3 py-1 rounded-full">
                           Project
                         </span>
                       </div>
@@ -225,7 +301,7 @@ export function Showcase() {
                     </div>
 
                     {/* Content area */}
-                    <div className="border-t border-hairline p-5">
+                    <div className="p-5 pt-6">
                       <div className="flex items-end justify-between gap-4">
                         <div>
                           <p className="font-display text-2xl tracking-tight">
@@ -264,15 +340,15 @@ export function Showcase() {
                       </div>
 
                       {/* Bottom editorial line */}
-                      <div className="mt-4 pt-3 border-t border-hairline flex justify-between mono-label opacity-40 text-[10px] uppercase tracking-widest">
+                      <div className="mt-8 pt-3 border-t border-hairline flex justify-between mono-label opacity-40 text-[10px] uppercase tracking-widest">
                         <span className="truncate max-w-[70%]">{p.tagline}</span>
                         <span>Ref. {p.idx.replace("P-", "#")}</span>
                       </div>
                     </div>
 
-                    {/* Hover accent line */}
-                    <span className="absolute bottom-0 left-0 h-px w-full bg-accent scale-x-0 group-hover:scale-x-100 transition-transform duration-500 origin-left" />
-                  </motion.button>
+                      {/* Hover accent line */}
+                      <span className="absolute bottom-0 left-1/2 h-1 w-1/3 -translate-x-1/2 rounded-t-full bg-accent opacity-0 group-hover:opacity-100 group-hover:w-1/2 transition-all duration-500" />
+                  </TiltCard>
                 ))}
               </motion.div>
             ) : tab === "certificates" ? (
@@ -285,98 +361,84 @@ export function Showcase() {
                 className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3"
               >
                 {certificates.map((c, i) => (
-                  <motion.button
+                  <TiltCard
                     key={c.idx}
-                    type="button"
                     onClick={() => setActiveCert(c)}
-                    initial={{ opacity: 0, y: 24 }}
-                    whileInView={{ opacity: 1, y: 0 }}
+                    initial={{ opacity: 0, y: 24, rotateX: -30, scale: 0.95 }}
+                    whileInView={{ opacity: 1, y: 0, rotateX: 0, scale: 1 }}
                     viewport={{ once: true, margin: "-10%" }}
-                    transition={{ duration: 0.6, ease, delay: i * 0.06 }}
-                    className="group relative block overflow-hidden border border-hairline bg-white text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+                    transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1], delay: i * 0.06 }}
+                    style={{ transformOrigin: "bottom" }}
+                    className="group relative block overflow-hidden rounded-[2rem] border border-white/10 bg-white/[0.02] p-2 text-left md:backdrop-blur-md transition-all duration-500 hover:-translate-y-2 hover:bg-white/[0.05] hover:shadow-[0_20px_40px_-15px_rgba(0,240,255,0.15)] focus:outline-none focus-visible:ring-2 focus-visible:ring-accent"
                   >
-                    <div className="relative aspect-[4/3] w-full overflow-hidden bg-white">
+                    <div className="relative aspect-[4/3] w-full overflow-hidden rounded-[1.5rem] bg-white/95 p-4 flex items-center justify-center">
                       <img
                         src={c.image}
                         alt={`${c.title} — ${c.issuer}`}
                         loading="lazy"
-                        className="absolute inset-0 h-full w-full object-contain transition-transform duration-700 group-hover:scale-[1.03]"
+                        className="h-full w-full object-contain transition-transform duration-700 group-hover:scale-[1.03] drop-shadow-md"
                       />
-                      <p className="absolute top-3 left-3 mono-label opacity-70 text-black/70">{c.idx}</p>
+                      <p className="absolute top-4 left-4 mono-label opacity-80 bg-black/10 backdrop-blur-sm px-3 py-1 rounded-full text-black">{c.idx}</p>
                     </div>
-                    <div className="flex items-end justify-between gap-3 p-5 bg-background border-t border-hairline">
+                    <div className="flex items-end justify-between gap-3 p-5 pt-6">
                       <div className="min-w-0">
                         <p className="font-display text-lg md:text-xl tracking-tight truncate">{c.title}</p>
-                        <p className="mono-label opacity-60 mt-1 truncate">{c.issuer} · {c.date}</p>
+                        <p className="mono-label opacity-60 mt-2 truncate">{c.issuer} · {c.date}</p>
                       </div>
-                      <span className="mono-label opacity-60 group-hover:opacity-100 group-hover:text-accent transition shrink-0">
-                        VIEW ↗
+                      <span className="mono-label opacity-60 group-hover:opacity-100 group-hover:text-accent transition shrink-0 bg-white/5 p-2 rounded-full">
+                        ↗
                       </span>
                     </div>
-                  </motion.button>
+                  </TiltCard>
                 ))}
               </motion.div>
             ) : (
               <motion.div
                 key="stack"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
                 transition={{ duration: 0.5, ease }}
-                className="relative w-full h-[520px] md:h-[560px] overflow-hidden rounded-2xl border border-hairline bg-[radial-gradient(ellipse_at_center,rgba(255,255,255,0.06),transparent_65%)]"
+                className="grid grid-cols-1 md:grid-cols-3 gap-6"
               >
-                {/* soft grid */}
-                <div
-                  className="pointer-events-none absolute inset-0 opacity-[0.06]"
-                  style={{
-                    backgroundImage:
-                      "linear-gradient(to right, #fff 1px, transparent 1px), linear-gradient(to bottom, #fff 1px, transparent 1px)",
-                    backgroundSize: "56px 56px",
-                  }}
-                />
-                {stack.map((s) => (
+                {stackCategories.map((category, i) => (
                   <motion.div
-                    key={s.name}
-                    drag
-                    dragElastic={0.6}
-                    dragTransition={{ bounceStiffness: 120, bounceDamping: 12 }}
-                    dragConstraints={{ left: -80, right: 80, top: -80, bottom: 80 }}
-                    initial={{ opacity: 0, scale: 0.6, rotate: -8 }}
-                    animate={{
-                      opacity: 1,
-                      scale: 1,
-                      rotate: [-4, 4, -4],
-                      y: [0, -14, 0, 12, 0],
-                      x: [0, 8, 0, -6, 0],
-                    }}
-                    transition={{
-                      opacity: { duration: 0.6, delay: s.delay * 0.15, ease },
-                      scale: { duration: 0.6, delay: s.delay * 0.15, ease },
-                      rotate: { duration: 6 + s.delay, repeat: Infinity, ease: "easeInOut", delay: s.delay },
-                      y: { duration: 8 + s.delay, repeat: Infinity, ease: "easeInOut", delay: s.delay },
-                      x: { duration: 10 + s.delay, repeat: Infinity, ease: "easeInOut", delay: s.delay },
-                    }}
-                    whileHover={{ scale: 1.15, zIndex: 20 }}
-                    whileTap={{ scale: 1.2, zIndex: 30, cursor: "grabbing" }}
-                    whileDrag={{ scale: 1.25, zIndex: 40, rotate: 12 }}
-                    className="group absolute -translate-x-1/2 -translate-y-1/2 cursor-grab active:cursor-grabbing touch-none"
-                    style={{ left: `${s.x}%`, top: `${s.y}%`, width: s.size, height: s.size }}
+                    key={category.title}
+                    initial={{ opacity: 0, y: 24, rotateX: -30, scale: 0.95 }}
+                    whileInView={{ opacity: 1, y: 0, rotateX: 0, scale: 1 }}
+                    viewport={{ once: true, margin: "-10%" }}
+                    transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1], delay: i * 0.1 }}
+                    style={{ transformOrigin: "bottom" }}
+                    className="flex flex-col gap-4 rounded-[2rem] border border-white/10 bg-white/[0.02] p-6 md:p-8 md:backdrop-blur-md hover:border-white/20 transition-colors"
                   >
-                    <div className="relative w-full h-full rounded-2xl border border-hairline bg-background/60 backdrop-blur-sm flex items-center justify-center shadow-[0_10px_40px_-10px_rgba(0,0,0,0.6)] transition-colors group-hover:border-foreground/60 pointer-events-none">
-                      <img
-                        src={`https://cdn.simpleicons.org/${s.slug}/${s.color}`}
-                        alt={s.name}
-                        loading="lazy"
-                        draggable={false}
-                        className="w-1/2 h-1/2 object-contain select-none"
-                      />
+                    <div className="flex items-center gap-3 border-b border-white/10 pb-4">
+                      <span className="mono-label opacity-40">0{i + 1}</span>
+                      <h3 className="font-display text-xl tracking-tight text-foreground/90">{category.title}</h3>
                     </div>
-                    <span className="pointer-events-none absolute left-1/2 -translate-x-1/2 -bottom-6 mono-label whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity">
-                      {s.name}
-                    </span>
+                    
+                    <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 mt-2">
+                      {category.items.map((item) => (
+                        <motion.div
+                          key={item.name}
+                          whileHover={{ scale: 1.05 }}
+                          className="group flex flex-col items-center justify-center gap-3 rounded-2xl border border-white/5 bg-black/20 p-4 transition-colors hover:bg-white/10 hover:border-white/20 shadow-lg"
+                        >
+                          <div className="relative flex h-10 w-10 items-center justify-center grayscale transition-all duration-300 group-hover:grayscale-0">
+                            <img
+                              src={`https://cdn.simpleicons.org/${item.slug}/${item.color}`}
+                              alt={item.name}
+                              loading="lazy"
+                              className="h-full w-full object-contain drop-shadow-[0_0_15px_rgba(255,255,255,0.1)] group-hover:drop-shadow-[0_0_20px_rgba(255,255,255,0.3)]"
+                            />
+                          </div>
+                          <span className="mono-label text-[10px] opacity-70 transition-opacity group-hover:opacity-100 text-center truncate w-full">
+                            {item.name}
+                          </span>
+                        </motion.div>
+                      ))}
+                    </div>
                   </motion.div>
                 ))}
-
               </motion.div>
 
             )}
@@ -393,26 +455,30 @@ export function Showcase() {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
           >
-            <div
-              className="absolute inset-0 bg-background/85 backdrop-blur-md"
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="absolute inset-0 z-0 bg-black/40 backdrop-blur-sm"
               onClick={() => setActive(null)}
             />
             <motion.div
               role="dialog"
               aria-modal="true"
               aria-label={`${active.title} case study`}
-              initial={{ opacity: 0, y: 30, scale: 0.98 }}
+              data-lenis-prevent="true"
+              initial={{ opacity: 0, y: 30, scale: 0.95 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: 20, scale: 0.98 }}
-              transition={{ duration: 0.35, ease }}
-              className="relative w-full max-w-5xl max-h-[92vh] overflow-y-auto border border-hairline bg-background"
+              exit={{ opacity: 0, y: 20, scale: 0.95 }}
+              transition={{ duration: 0.4, ease }}
+              className="relative z-10 w-full max-w-4xl max-h-[85svh] overflow-y-auto overscroll-contain rounded-[2rem] border border-white/10 bg-background shadow-2xl"
             >
               <div
-                className="relative aspect-[16/9] w-full overflow-hidden border-b border-hairline"
+                className="relative aspect-[16/9] w-full overflow-hidden border-b border-white/10"
                 style={{ background: active.accent }}
               >
                 <div className="absolute inset-0 flex items-center justify-center p-4 md:p-10">
-                  <div className="relative h-full w-full max-w-[92%] max-h-[86%] rounded-md overflow-hidden shadow-[0_30px_80px_-20px_rgba(0,0,0,0.7)] ring-1 ring-white/10 bg-black">
+                  <div className="relative h-full w-full max-w-[92%] max-h-[86%] rounded-xl overflow-hidden shadow-[0_30px_80px_-20px_rgba(0,0,0,0.7)] ring-1 ring-white/10 bg-black">
                     <img
                       src={active.image}
                       alt={`${active.title} — screenshot`}
@@ -429,13 +495,13 @@ export function Showcase() {
                   type="button"
                   aria-label="Close"
                   onClick={() => setActive(null)}
-                  className="absolute top-3 right-3 md:top-4 md:right-4 h-9 w-9 rounded-full border border-hairline bg-background/70 backdrop-blur flex items-center justify-center hover:bg-background transition"
+                  className="absolute top-4 right-4 md:top-6 md:right-6 h-10 w-10 rounded-full border border-white/10 bg-black/40 backdrop-blur-md flex items-center justify-center hover:bg-black/60 transition text-white z-50"
                 >
-                  <span className="text-lg leading-none">×</span>
+                  <span className="text-xl leading-none">×</span>
                 </button>
               </div>
 
-              <div className="p-5 md:p-10">
+              <div className="p-6 md:p-12">
                 <div className="flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
                   <p className="display-xl text-[clamp(1.8rem,5vw,3.2rem)] leading-none">
                     {active.title}
@@ -491,21 +557,25 @@ export function Showcase() {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
           >
-            <div
-              className="absolute inset-0 bg-background/85 backdrop-blur-md"
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="absolute inset-0 z-0 bg-black/40 backdrop-blur-sm"
               onClick={() => setActiveCert(null)}
             />
             <motion.div
               role="dialog"
               aria-modal="true"
               aria-label={`${activeCert.title} certificate`}
-              initial={{ opacity: 0, y: 30, scale: 0.98 }}
+              data-lenis-prevent="true"
+              initial={{ opacity: 0, y: 30, scale: 0.95 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: 20, scale: 0.98 }}
-              transition={{ duration: 0.35, ease }}
-              className="relative w-full max-w-5xl max-h-[92vh] overflow-y-auto border border-hairline bg-background"
+              exit={{ opacity: 0, y: 20, scale: 0.95 }}
+              transition={{ duration: 0.4, ease }}
+              className="relative z-10 w-full max-w-3xl max-h-[85svh] overflow-y-auto overscroll-contain rounded-[2rem] border border-white/10 bg-background shadow-2xl flex flex-col"
             >
-              <div className="relative w-full bg-white border-b border-hairline">
+              <div className="relative w-full bg-white border-b border-white/10 p-4 md:p-8 flex justify-center shrink-0">
                 <img
                   src={activeCert.image}
                   alt={`${activeCert.title} — ${activeCert.issuer}`}
@@ -515,13 +585,13 @@ export function Showcase() {
                   type="button"
                   aria-label="Close"
                   onClick={() => setActiveCert(null)}
-                  className="absolute top-3 right-3 md:top-4 md:right-4 h-9 w-9 rounded-full border border-hairline bg-background/80 backdrop-blur flex items-center justify-center hover:bg-background transition"
+                  className="absolute top-4 right-4 md:top-6 md:right-6 h-10 w-10 rounded-full border border-black/10 bg-black/5 backdrop-blur-md flex items-center justify-center hover:bg-black/10 transition text-black z-50"
                 >
-                  <span className="text-lg leading-none">×</span>
+                  <span className="text-xl leading-none">×</span>
                 </button>
-                <p className="absolute top-3 left-3 mono-label opacity-70 text-black/70">{activeCert.idx}</p>
+                <p className="absolute top-4 left-4 mono-label opacity-70 bg-black/10 backdrop-blur-sm px-3 py-1 rounded-full text-black">{activeCert.idx}</p>
               </div>
-              <div className="p-5 md:p-8">
+              <div className="p-6 md:p-10">
                 <div className="flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
                   <p className="display-xl text-[clamp(1.4rem,4vw,2.4rem)] leading-tight">
                     {activeCert.title}

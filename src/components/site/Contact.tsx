@@ -104,11 +104,12 @@ export function Contact() {
       <motion.div
         aria-hidden
         onMouseMove={(e) => {
+          if (window.innerWidth < 768) return;
           const r = (e.currentTarget as HTMLDivElement).getBoundingClientRect();
           mx.set(((e.clientX - r.left) / r.width) * 100);
           my.set(((e.clientY - r.top) / r.height) * 100);
         }}
-        className="pointer-events-auto absolute inset-0 -z-10"
+        className="hidden md:block pointer-events-auto absolute inset-0 -z-10"
         style={{
           background: useTransform(
             [bgX, bgY],
@@ -117,6 +118,7 @@ export function Contact() {
           ) as unknown as string,
         }}
       />
+      <div className="md:hidden absolute inset-0 -z-10 bg-[radial-gradient(ellipse_at_center,color-mix(in_oklab,var(--accent)_12%,transparent),transparent_70%)]" />
       {/* Grid pattern */}
       <div
         aria-hidden
@@ -130,7 +132,7 @@ export function Contact() {
         }}
       />
 
-      <div className="container-editorial pt-32 pb-16">
+      <div className="container-editorial py-12 md:py-20">
         {/* Header row */}
         <div className="flex items-end justify-between gap-6 flex-wrap">
           <p className="mono-label">05 / Contact</p>
@@ -143,29 +145,30 @@ export function Contact() {
               Available — Q3 · 2026
             </span>
             <span className="opacity-40">·</span>
-            <span className="tabular-nums">IST {time}</span>
+            <span className="tabular-nums" suppressHydrationWarning>IST {time}</span>
           </div>
         </div>
 
-        {/* Giant kinetic headline */}
-        <motion.h2
-          initial={{ opacity: 0, y: 40 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: "-15%" }}
-          transition={{ duration: 1, ease }}
-          className="mt-10 display-xl text-[clamp(2.6rem,12vw,11rem)] leading-[0.86] tracking-tight"
-        >
-          LET'S BUILD
-          <br />
-          <span className="inline-flex items-baseline gap-4 md:gap-8">
-            <span className="italic font-light text-accent">something</span>
-            <span className="inline-block h-[0.12em] w-[1em] bg-foreground/40 align-middle" />
-          </span>
-          <br />
-          TOGETHER<span className="text-accent">.</span>
-        </motion.h2>
+        {/* Giant kinetic headline with 3D reveal */}
+        <div style={{ perspective: "1000px" }}>
+          <motion.h2
+            initial={{ opacity: 0, y: 80, rotateX: -45, scale: 0.9 }}
+            whileInView={{ opacity: 1, y: 0, rotateX: 0, scale: 1 }}
+            viewport={{ once: true, margin: "-20%" }}
+            transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1] }}
+            style={{ transformOrigin: "bottom" }}
+            className="mt-10 display-xl text-[clamp(2.8rem,12vw,11rem)] leading-[0.85] tracking-tight text-left md:text-auto"
+          >
+            LET'S BUILD
+            <span className="flex items-center gap-4 md:gap-8 py-2 md:py-4">
+              <span className="italic font-light text-accent">something</span>
+              <span className="h-[0.08em] w-[1.2em] bg-foreground/30 mt-[0.2em]" />
+            </span>
+            TOGETHER<span className="text-accent">.</span>
+          </motion.h2>
+        </div>
 
-        <p className="mt-8 max-w-xl text-lg text-muted-foreground">
+        <p className="mt-8 max-w-xl text-lg text-muted-foreground text-left">
           Have an idea, project, or collaboration in mind? Send a message and
           let's craft something clean, modern and unmistakably yours.
         </p>
@@ -220,12 +223,12 @@ export function Contact() {
             <div className="mt-12 grid grid-cols-3 gap-6 border-t border-hairline pt-6">
               {[
                 { k: "Response", v: "< 4 hrs" },
-                { k: "Timezone", v: "IST · GMT+5:30" },
+                { k: "Timezone", v: "IST (+5:30)" },
                 { k: "Booking", v: "Open" },
               ].map((m) => (
                 <div key={m.k}>
                   <p className="mono-label opacity-50">{m.k}</p>
-                  <p className="mt-2 font-display text-lg tracking-tight">{m.v}</p>
+                  <p className="mt-2 font-display text-base md:text-lg tracking-tight">{m.v}</p>
                 </div>
               ))}
             </div>
@@ -315,7 +318,7 @@ export function Contact() {
         </div>
 
         {/* Marquee */}
-        <div className="mt-24 border-y border-hairline overflow-hidden">
+        <div className="mt-12 md:mt-20 border-y border-hairline overflow-hidden">
           <motion.div
             className="flex gap-16 py-6 whitespace-nowrap font-display text-4xl md:text-6xl tracking-tight"
             animate={{ x: ["0%", "-50%"] }}
@@ -344,10 +347,19 @@ export function Contact() {
         </div>
       </div>
 
-      <footer className="container-editorial hairline mt-8 flex flex-col gap-3 py-8 text-xs text-muted-foreground md:flex-row md:items-center md:justify-between">
-        <span className="mono-label">© 2026 Sandeep — All rights reserved</span>
-        <span className="mono-label">Designed &amp; built in-house · IST {time}</span>
-      </footer>
+      <div style={{ perspective: "800px" }}>
+        <motion.footer 
+          initial={{ opacity: 0, y: 20, rotateX: -30 }}
+          whileInView={{ opacity: 1, y: 0, rotateX: 0 }}
+          viewport={{ once: true, margin: "0%" }}
+          transition={{ duration: 1, ease: [0.16, 1, 0.3, 1] }}
+          style={{ transformOrigin: "bottom" }}
+          className="container-editorial hairline mt-8 flex flex-col gap-3 py-8 text-xs text-muted-foreground md:flex-row md:items-center md:justify-between"
+        >
+          <span className="mono-label">© 2026 Sandeep — All rights reserved</span>
+          <span className="mono-label" suppressHydrationWarning>Designed &amp; built in-house · IST {time}</span>
+        </motion.footer>
+      </div>
     </section>
   );
 }

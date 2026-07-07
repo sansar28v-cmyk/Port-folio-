@@ -8,7 +8,7 @@ export function Cursor() {
 
   useEffect(() => {
     if (typeof window === "undefined") return;
-    if (!window.matchMedia("(pointer: fine)").matches) return;
+    if (window.innerWidth < 768 || !window.matchMedia("(pointer: fine)").matches) return;
     setEnabled(true);
 
     let mx = window.innerWidth / 2;
